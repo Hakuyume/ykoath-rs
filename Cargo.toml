@@ -1,7 +1,10 @@
 [package]
-name = "ykoath"
+name = "ykoath-protocol"
 version = "0.1.0"
 edition = "2021"
+description = "Implementaion of YKOATH Protocol"
+license = "MIT"
+repository = "https://github.com/Hakuyume/ykoath-rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -1,7 +1,6 @@
 use chrono::offset::Utc;
 use clap::Parser;
-use ykoath::calculate_all;
-use ykoath::YubiKey;
+use ykoath_protocol::{calculate_all, YubiKey};
 
 #[derive(Parser)]
 struct Opts {
