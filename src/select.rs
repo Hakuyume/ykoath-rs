@@ -1,4 +1,4 @@
-use crate::{Algorithm, Error, EscapeAscii, YubiKey};
+use crate::{Algorithm, Error, YubiKey};
 use std::fmt;
 
 pub struct Response<'a> {
@@ -11,7 +11,7 @@ impl fmt::Debug for Response<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
             .field("version", &self.version)
-            .field("name", &EscapeAscii(self.name))
+            .field("name", &self.name.escape_ascii().to_string())
             .field("inner", &self.inner)
             .finish()
     }
@@ -24,7 +24,7 @@ pub struct Inner<'a> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(skip(self, buf))]
+    #[tracing::instrument(skip(buf))]
     pub fn select<'a>(&self, buf: &'a mut Vec<u8>) -> Result<Response<'a>, Error> {
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa4, 0x04, 0x00]);

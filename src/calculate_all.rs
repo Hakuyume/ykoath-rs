@@ -1,4 +1,4 @@
-use crate::{Error, EscapeAscii, YubiKey};
+use crate::{Error, YubiKey};
 use std::fmt;
 use std::iter;
 
@@ -10,7 +10,7 @@ pub struct Response<'a> {
 impl fmt::Debug for Response<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
-            .field("name", &EscapeAscii(self.name))
+            .field("name", &self.name.escape_ascii().to_string())
             .field("inner", &self.inner)
             .finish()
     }
@@ -24,7 +24,7 @@ pub enum Inner<'a> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(skip(self, buf))]
+    #[tracing::instrument(skip(buf))]
     pub fn calculate_all<'a>(
         &self,
         truncate: bool,

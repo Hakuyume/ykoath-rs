@@ -7,63 +7,71 @@ pub mod select;
 
 pub use error::Error;
 use pcsc::{Card, Context, Protocols, Scope, ShareMode, MAX_BUFFER_SIZE};
-use std::fmt::{self, Write};
+use std::ffi::CString;
+use std::fmt;
 
-pub struct YubiKey(Card);
+pub struct YubiKey {
+    name: CString,
+    card: Card,
+}
+
+impl fmt::Debug for YubiKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("YubiKey").field(&self.name).finish()
+    }
+}
+
 impl YubiKey {
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(err, ret, skip_all)]
     pub fn connect(buf: &mut Vec<u8>) -> Result<Self, Error> {
         let context = Context::establish(Scope::User)?;
         Self::connect_with(&context, buf)
     }
 
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(err, ret, skip_all)]
     pub fn connect_with(context: &Context, buf: &mut Vec<u8>) -> Result<Self, Error> {
         // https://github.com/Yubico/yubikey-manager/blob/4.0.9/ykman/pcsc/__init__.py#L46
-        const READER_NAME: &[u8] = b"yubico yubikey";
+        const NAME: &[u8] = b"yubico yubikey";
 
         buf.resize(context.list_readers_len()?, 0);
-        let reader_name = context
+        let name = context
             .list_readers(buf)?
-            .find(|reader_name| {
+            .find(|name| {
                 // https://github.com/Yubico/yubikey-manager/blob/4.0.9/ykman/pcsc/__init__.py#L165
-                reader_name
-                    .to_bytes()
+                name.to_bytes()
                     .to_ascii_lowercase()
-                    .windows(READER_NAME.len())
-                    .any(|window| window == READER_NAME)
+                    .windows(NAME.len())
+                    .any(|window| window == NAME)
             })
             .ok_or(Error::NoDevice)?;
-        tracing::debug!(reader_name = ?reader_name);
-        Ok(Self(context.connect(
-            reader_name,
-            ShareMode::Shared,
-            Protocols::ANY,
-        )?))
+        tracing::debug!(?name);
+        Ok(Self {
+            name: name.to_owned(),
+            card: context.connect(name, ShareMode::Shared, Protocols::ANY)?,
+        })
     }
 
-    #[tracing::instrument(skip_all)]
+    #[tracing::instrument(skip(buf))]
     fn transmit<'a>(&self, buf: &'a mut Vec<u8>) -> Result<&'a [u8], Error> {
         if buf.len() >= 5 {
             // Lc
             buf[4] = (buf.len() - 5) as _;
         }
-        tracing::trace!(command = ?buf);
         let mid = buf.len();
         loop {
             let len = buf.len();
             buf.resize(len + MAX_BUFFER_SIZE, 0);
             let (occupied, vacant) = buf.split_at_mut(len);
-            let command = if mid == len {
+            let send = if mid == len {
                 &occupied[..mid]
             } else {
                 // SEND REMAINING INSTRUCTION
                 &[0x00, 0xa5, 0x00, 0x00]
             };
-            tracing::trace!(pcsc_command = ?command);
-            let response = self.0.transmit(command, vacant)?;
-            tracing::trace!(pcsc_response = ?response);
-            let len = len + response.len();
+            tracing::debug!(?send);
+            let receive = self.card.transmit(send, vacant)?;
+            tracing::debug!(?receive);
+            let len = len + receive.len();
             buf.truncate(len);
             let code = u16::from_le_bytes([
                 buf.pop().ok_or(Error::InsufficientData)?,
@@ -72,7 +80,7 @@ impl YubiKey {
             match code {
                 0x9000 => {
                     let response = &buf[mid..];
-                    tracing::trace!(response = ?response);
+                    tracing::debug!(response = ?response);
                     break Ok(response);
                 }
                 0x6100..=0x61ff => Ok(()),
@@ -110,15 +118,4 @@ pub enum Algorithm {
     HmacSha1,
     HmacSha256,
     HmacSha512,
-}
-
-struct EscapeAscii<'a>(&'a [u8]);
-impl fmt::Debug for EscapeAscii<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("b\"")?;
-        for b in self.0.escape_ascii() {
-            f.write_char(b as char)?;
-        }
-        f.write_char('"')
-    }
 }

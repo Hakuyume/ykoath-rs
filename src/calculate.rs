@@ -7,7 +7,7 @@ pub struct Response<'a> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(skip(self, buf))]
+    #[tracing::instrument(fields(name = name.escape_ascii().to_string()), skip(name, buf))]
     pub fn calculate<'a>(
         &self,
         truncate: bool,
