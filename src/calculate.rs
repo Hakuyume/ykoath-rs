@@ -6,6 +6,21 @@ pub struct Response<'a> {
     pub response: &'a [u8],
 }
 
+impl Response<'_> {
+    // https://github.com/Yubico/yubikey-manager/blob/4.0.9/yubikit/oath.py#L240
+    pub fn code(&self) -> String {
+        let mut response = 0_u32.to_be_bytes();
+        let len = response.len();
+        response[len.saturating_sub(self.response.len())..]
+            .copy_from_slice(&self.response[self.response.len().saturating_sub(len)..]);
+        format!(
+            "{:01$}",
+            (u32::from_be_bytes(response) & 0x7fff_ffff) % 10_u32.pow(u32::from(self.digits)),
+            usize::from(self.digits),
+        )
+    }
+}
+
 impl YubiKey {
     #[tracing::instrument(err, fields(name = name.escape_ascii().to_string()), ret, skip(name, buf))]
     pub fn calculate<'a>(

@@ -1,6 +1,5 @@
 use chrono::offset::Utc;
 use clap::Parser;
-use ykoath::calculate;
 use ykoath::calculate_all;
 use ykoath::YubiKey;
 
@@ -30,7 +29,7 @@ fn main() -> anyhow::Result<()> {
         .find(|response| response.name == opts.name.as_bytes())
         .ok_or_else(|| anyhow::format_err!("no account: {}", opts.name))?;
 
-    let calculate::Response { digits, response } = match response.inner {
+    let response = match response.inner {
         calculate_all::Inner::Response(response) => response,
         calculate_all::Inner::Hotp => anyhow::bail!("HOTP is not supported"),
         calculate_all::Inner::Touch => {
@@ -38,13 +37,7 @@ fn main() -> anyhow::Result<()> {
             yubikey.calculate(true, opts.name.as_bytes(), &challenge, &mut buf)?
         }
     };
-
-    // https://github.com/Yubico/yubikey-manager/blob/4.0.9/yubikit/oath.py#L240
-    println!(
-        "{:01$}",
-        u32::from_be_bytes(response.try_into()?) % 10_u32.pow(u32::from(digits)),
-        digits as _,
-    );
+    println!("{}", response.code());
 
     Ok(())
 }
