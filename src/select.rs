@@ -1,20 +1,10 @@
 use crate::{Algorithm, Error, YubiKey};
-use std::fmt;
 
+#[derive(Debug)]
 pub struct Response<'a> {
     pub version: &'a [u8],
     pub name: &'a [u8],
     pub inner: Option<Inner<'a>>,
-}
-
-impl fmt::Debug for Response<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Response")
-            .field("version", &self.version)
-            .field("name", &self.name.escape_ascii().to_string())
-            .field("inner", &self.inner)
-            .finish()
-    }
 }
 
 #[derive(Debug)]
