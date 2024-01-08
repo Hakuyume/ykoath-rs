@@ -53,7 +53,9 @@ impl YubiKey {
 
     #[tracing::instrument(err, level = "debug", ret)]
     fn transmit<'a>(&self, buf: &'a mut Vec<u8>) -> Result<&'a [u8], Error> {
-        let buf = buf; // https://github.com/tokio-rs/tracing/issues/2796
+        // https://github.com/tokio-rs/tracing/issues/2796
+        #[allow(clippy::redundant_locals)]
+        let buf = buf;
         if buf.len() >= 5 {
             // Lc
             buf[4] = (buf.len() - 5) as _;

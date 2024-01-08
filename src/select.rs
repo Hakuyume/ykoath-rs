@@ -16,7 +16,9 @@ pub struct Inner<'a> {
 impl YubiKey {
     #[tracing::instrument(err, ret, skip(buf))]
     pub fn select<'a>(&self, buf: &'a mut Vec<u8>) -> Result<Response<'a>, Error> {
-        let buf = buf; // https://github.com/tokio-rs/tracing/issues/2796
+        // https://github.com/tokio-rs/tracing/issues/2796
+        #[allow(clippy::redundant_locals)]
+        let buf = buf;
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa4, 0x04, 0x00]);
         buf.push(0x00);

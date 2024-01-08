@@ -31,7 +31,9 @@ impl YubiKey {
         challenge: &[u8],
         buf: &'a mut Vec<u8>,
     ) -> Result<Vec<Response<'a>>, Error> {
-        let buf = buf; // https://github.com/tokio-rs/tracing/issues/2796
+        // https://github.com/tokio-rs/tracing/issues/2796
+        #[allow(clippy::redundant_locals)]
+        let buf = buf;
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa4, 0x00, if truncate { 0x01 } else { 0x00 }]);
         buf.push(0x00);
