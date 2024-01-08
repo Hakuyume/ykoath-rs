@@ -30,16 +30,14 @@ impl YubiKey {
         truncate: bool,
         challenge: &[u8],
         buf: &'a mut Vec<u8>,
-    ) -> Result<impl Iterator<Item = Result<Response<'a>, Error>> + 'a, Error> {
-        let buf = buf;
+    ) -> Result<Vec<Response<'a>>, Error> {
+        let buf = buf; // https://github.com/tokio-rs/tracing/issues/2796
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa4, 0x00, if truncate { 0x01 } else { 0x00 }]);
         buf.push(0x00);
         Self::push(buf, 0x74, challenge);
         let mut response = self.transmit(buf)?;
-        let span = tracing::Span::current();
-        Ok(iter::from_fn(move || {
-            let _enter = span.enter();
+        iter::from_fn(|| {
             if response.is_empty() {
                 None
             } else {
@@ -64,6 +62,7 @@ impl YubiKey {
                     Ok(Response { name, inner })
                 }))
             }
-        }))
+        })
+        .collect()
     }
 }

@@ -26,14 +26,9 @@ fn main() -> anyhow::Result<()> {
     // https://github.com/Yubico/yubikey-manager/blob/4.0.9/yubikit/oath.py#L391-L393
     let response = yubikey
         .calculate_all(true, &challenge, &mut buf)?
-        .find(|response| {
-            if let Ok(response) = response {
-                response.name == opts.name.as_bytes()
-            } else {
-                true
-            }
-        })
-        .ok_or_else(|| anyhow::format_err!("no account: {}", opts.name))??;
+        .into_iter()
+        .find(|response| response.name == opts.name.as_bytes())
+        .ok_or_else(|| anyhow::format_err!("no account: {}", opts.name))?;
 
     let calculate::Response { digits, response } = match response.inner {
         calculate_all::Inner::Response(response) => response,
