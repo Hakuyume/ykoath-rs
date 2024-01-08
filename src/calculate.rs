@@ -7,7 +7,7 @@ pub struct Response<'a> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(fields(name = name.escape_ascii().to_string()), skip(name, buf))]
+    #[tracing::instrument(err, fields(name = name.escape_ascii().to_string()), ret, skip(name, buf))]
     pub fn calculate<'a>(
         &self,
         truncate: bool,
@@ -15,6 +15,7 @@ impl YubiKey {
         challenge: &[u8],
         buf: &'a mut Vec<u8>,
     ) -> Result<Response<'a>, Error> {
+        let buf = buf;
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa2, 0x00, if truncate { 0x01 } else { 0x00 }]);
         buf.push(0x00);
@@ -22,11 +23,9 @@ impl YubiKey {
         Self::push(buf, 0x74, challenge);
         let mut response = self.transmit(buf)?;
         let (_, response) = Self::pop(&mut response, &[if truncate { 0x76 } else { 0x75 }])?;
-        let response = Response {
+        Ok(Response {
             digits: *response.first().ok_or(Error::InsufficientData)?,
             response: &response[1..],
-        };
-        tracing::debug!(response = ?response);
-        Ok(response)
+        })
     }
 }

@@ -14,8 +14,9 @@ pub struct Inner<'a> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(skip(buf))]
+    #[tracing::instrument(err, ret, skip(buf))]
     pub fn select<'a>(&self, buf: &'a mut Vec<u8>) -> Result<Response<'a>, Error> {
+        let buf = buf;
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa4, 0x04, 0x00]);
         buf.push(0x00);
@@ -45,7 +46,6 @@ impl YubiKey {
             name,
             inner,
         };
-        tracing::debug!(response = ?response);
         Ok(response)
     }
 }

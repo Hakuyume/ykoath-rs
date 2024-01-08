@@ -51,8 +51,9 @@ impl YubiKey {
         })
     }
 
-    #[tracing::instrument(skip(buf))]
+    #[tracing::instrument(err, ret, skip(buf))]
     fn transmit<'a>(&self, buf: &'a mut Vec<u8>) -> Result<&'a [u8], Error> {
+        let buf = buf;
         if buf.len() >= 5 {
             // Lc
             buf[4] = (buf.len() - 5) as _;
@@ -79,9 +80,7 @@ impl YubiKey {
             ]);
             match code {
                 0x9000 => {
-                    let response = &buf[mid..];
-                    tracing::debug!(response = ?response);
-                    break Ok(response);
+                    break Ok(&buf[mid..]);
                 }
                 0x6100..=0x61ff => Ok(()),
                 0x6a84 => Err(Error::NoSpace),

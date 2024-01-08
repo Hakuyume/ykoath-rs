@@ -24,19 +24,20 @@ pub enum Inner<'a> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(skip(buf))]
+    #[tracing::instrument(err, ret, skip(buf))]
     pub fn calculate_all<'a>(
         &self,
         truncate: bool,
         challenge: &[u8],
         buf: &'a mut Vec<u8>,
     ) -> Result<impl Iterator<Item = Result<Response<'a>, Error>> + 'a, Error> {
-        let span = tracing::Span::current();
+        let buf = buf;
         buf.clear();
         buf.extend_from_slice(&[0x00, 0xa4, 0x00, if truncate { 0x01 } else { 0x00 }]);
         buf.push(0x00);
         Self::push(buf, 0x74, challenge);
         let mut response = self.transmit(buf)?;
+        let span = tracing::Span::current();
         Ok(iter::from_fn(move || {
             let _enter = span.enter();
             if response.is_empty() {
@@ -60,9 +61,7 @@ impl YubiKey {
                         0x7c => Ok(Inner::Touch),
                         _ => Err(Error::UnexpectedValue(tag)),
                     }?;
-                    let response = Response { name, inner };
-                    tracing::debug!(response = ?response);
-                    Ok(response)
+                    Ok(Response { name, inner })
                 }))
             }
         }))
