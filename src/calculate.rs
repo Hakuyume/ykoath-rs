@@ -9,6 +9,7 @@ pub struct Response<'a> {
 }
 
 impl Response<'_> {
+    #[must_use]
     pub fn code(&self) -> Code {
         let mut response = 0_u32.to_be_bytes();
         let len = response.len();
@@ -52,10 +53,16 @@ impl YubiKey {
         #[allow(clippy::redundant_locals)]
         let buf = buf;
         buf.clear();
-        buf.extend_from_slice(&[0x00, 0xa2, 0x00, if truncate { 0x01 } else { 0x00 }]);
+        buf.extend_from_slice(&[
+            0x00,
+            0xa2,
+            0x00,
+            #[allow(clippy::bool_to_int_with_if)]
+            if truncate { 0x01 } else { 0x00 },
+        ]);
         buf.push(0x00);
-        Self::push(buf, 0x71, name);
-        Self::push(buf, 0x74, challenge);
+        Self::push(buf, 0x71, name)?;
+        Self::push(buf, 0x74, challenge)?;
         let mut response = self.transmit(buf)?;
         let (_, response) = Self::pop(&mut response, &[if truncate { 0x76 } else { 0x75 }])?;
         Ok(Response {

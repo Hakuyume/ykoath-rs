@@ -35,7 +35,7 @@ impl YubiKey {
                 None
             } else {
                 Some(Self::pop(&mut response, &[0x72]).and_then(|(_, data)| {
-                    let type_algorithm = data.get(0).ok_or(Error::InsufficientData)?;
+                    let type_algorithm = data.first().ok_or(Error::InsufficientData)?;
                     let name = data.get(1..).ok_or(Error::InsufficientData)?;
                     let type_ = Type::try_from(*type_algorithm & 0xf0)?;
                     let algorithm = Algorithm::try_from(*type_algorithm & 0x0f)?;

@@ -32,9 +32,9 @@ impl YubiKey {
             let (_, challenge) = Self::pop(&mut response, &[0x74])?;
             let (_, algorithm) = Self::pop(&mut response, &[0x7b])?;
             let algorithm = match algorithm {
-                [v] => Algorithm::try_from(*v),
-                _ => Err(Error::UnexpectedValue(algorithm.len() as _)),
-            }?;
+                [v] => Algorithm::try_from(*v)?,
+                _ => Err(Error::UnexpectedValue(algorithm.len().try_into()?))?,
+            };
             Some(Inner {
                 challenge,
                 algorithm,

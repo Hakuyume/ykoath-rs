@@ -1,4 +1,4 @@
-//! https://developers.yubico.com/OATH/YKOATH_Protocol.html
+//! <https://developers.yubico.com/OATH/YKOATH_Protocol.html>
 
 pub mod calculate;
 pub mod calculate_all;
@@ -60,7 +60,7 @@ impl YubiKey {
         let buf = buf;
         if buf.len() >= 5 {
             // Lc
-            buf[4] = (buf.len() - 5) as _;
+            buf[4] = (buf.len() - 5).try_into()?;
         }
         let mid = buf.len();
         loop {
@@ -93,14 +93,15 @@ impl YubiKey {
                 0x6a80 => Err(Error::WrongSyntax),
                 0x6581 => Err(Error::GenericError),
                 _ => Err(Error::UnknownCode(code)),
-            }?
+            }?;
         }
     }
 
-    fn push(buf: &mut Vec<u8>, tag: u8, data: &[u8]) {
+    fn push(buf: &mut Vec<u8>, tag: u8, data: &[u8]) -> Result<(), Error> {
         buf.push(tag);
-        buf.push(data.len() as _);
+        buf.push(data.len().try_into()?);
         buf.extend_from_slice(data);
+        Ok(())
     }
 
     fn pop<'a>(buf: &mut &'a [u8], tags: &[u8]) -> Result<(u8, &'a [u8]), Error> {

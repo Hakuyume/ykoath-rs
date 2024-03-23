@@ -37,9 +37,15 @@ impl YubiKey {
         #[allow(clippy::redundant_locals)]
         let buf = buf;
         buf.clear();
-        buf.extend_from_slice(&[0x00, 0xa4, 0x00, if truncate { 0x01 } else { 0x00 }]);
+        buf.extend_from_slice(&[
+            0x00,
+            0xa4,
+            0x00,
+            #[allow(clippy::bool_to_int_with_if)]
+            if truncate { 0x01 } else { 0x00 },
+        ]);
         buf.push(0x00);
-        Self::push(buf, 0x74, challenge);
+        Self::push(buf, 0x74, challenge)?;
         let mut response = self.transmit(buf)?;
         iter::from_fn(|| {
             if response.is_empty() {

@@ -1,7 +1,12 @@
+use std::num::TryFromIntError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
     Pcsc(#[from] pcsc::Error),
+    #[error(transparent)]
+    TryFromInt(#[from] TryFromIntError),
+
     #[error("no YubiKey found")]
     NoDevice,
     #[error("response does not have enough length")]
