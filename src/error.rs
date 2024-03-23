@@ -2,22 +2,22 @@
 pub enum Error {
     #[error(transparent)]
     Pcsc(#[from] pcsc::Error),
-    #[error("No YubiKey found")]
+    #[error("no YubiKey found")]
     NoDevice,
-    #[error("Response does not have enough length")]
+    #[error("response does not have enough length")]
     InsufficientData,
-    #[error("Unknown response code (0x{0:04x})")]
+    #[error("unknown response code (0x{0:04x})")]
     UnknownCode(u16),
-    #[error("Unexpected value (0x{0:02x}")]
+    #[error("unexpected value (0x{0:02x}")]
     UnexpectedValue(u8),
-    #[error("No space")]
+    #[error("no space")]
     NoSpace,
-    #[error("No such object")]
+    #[error("no such object")]
     NoSuchObject,
-    #[error("Auth required")]
+    #[error("auth required")]
     AuthRequired,
-    #[error("Wrong syntax")]
+    #[error("wrong syntax")]
     WrongSyntax,
-    #[error("Generic error")]
+    #[error("generic error")]
     GenericError,
 }
