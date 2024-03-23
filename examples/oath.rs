@@ -69,11 +69,14 @@ fn main() -> anyhow::Result<()> {
                 );
                 for response in responses {
                     let code = match response.inner {
-                        calculate_all::Inner::Response(response) => response.code(),
-                        calculate_all::Inner::Hotp => "-".to_string(),
-                        calculate_all::Inner::Touch => "-".to_string(),
+                        calculate_all::Inner::Response(response) => Some(response.code()),
+                        calculate_all::Inner::Hotp | calculate_all::Inner::Touch => None,
                     };
-                    println!("{}\t{}", response.name.escape_ascii(), code);
+                    if let Some(code) = code {
+                        println!("{}\t{code}", response.name.escape_ascii());
+                    } else {
+                        println!("{}\t-", response.name.escape_ascii());
+                    }
                 }
             }
         }

@@ -1,5 +1,6 @@
 use crate::escape_ascii::EscapeAscii;
 use crate::{Error, YubiKey};
+use std::fmt::{self, Display};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Response<'a> {
@@ -8,15 +9,31 @@ pub struct Response<'a> {
 }
 
 impl Response<'_> {
-    // https://github.com/Yubico/yubikey-manager/blob/4.0.9/yubikit/oath.py#L240
-    pub fn code(&self) -> String {
+    pub fn code(&self) -> Code {
         let mut response = 0_u32.to_be_bytes();
         let len = response.len();
         response[len.saturating_sub(self.response.len())..]
             .copy_from_slice(&self.response[self.response.len().saturating_sub(len)..]);
-        format!(
+        Code {
+            digits: self.digits,
+            response: u32::from_be_bytes(response),
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct Code {
+    digits: u8,
+    response: u32,
+}
+
+impl Display for Code {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // https://github.com/Yubico/yubikey-manager/blob/4.0.9/yubikit/oath.py#L240
+        write!(
+            f,
             "{:01$}",
-            (u32::from_be_bytes(response) & 0x7fff_ffff) % 10_u32.pow(u32::from(self.digits)),
+            (self.response & 0x7fff_ffff) % 10_u32.pow(u32::from(self.digits)),
             usize::from(self.digits),
         )
     }
