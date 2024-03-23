@@ -4,8 +4,6 @@ use ykoath_protocol::{calculate_all, YubiKey};
 
 #[derive(Parser)]
 struct Opts {
-    // #[clap(long)]
-    // name: String,
     #[clap(subcommand)]
     command: Command,
 }
