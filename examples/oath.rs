@@ -37,6 +37,7 @@ fn main() -> anyhow::Result<()> {
 
             // https://github.com/Yubico/yubikey-manager/blob/4.0.9/yubikit/oath.py#L391-L393
             let mut responses = yubikey.calculate_all(true, &challenge(), &mut buf)?;
+            responses.sort_unstable_by_key(|response| response.name);
             if let Some(query) = query {
                 responses.retain(|response| {
                     response
