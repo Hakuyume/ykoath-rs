@@ -1,3 +1,4 @@
+use crate::escape_ascii::EscapeAscii;
 use crate::{Error, YubiKey};
 
 #[derive(Debug)]
@@ -22,7 +23,7 @@ impl Response<'_> {
 }
 
 impl YubiKey {
-    #[tracing::instrument(err, fields(name = name.escape_ascii().to_string()), ret, skip(name, buf))]
+    #[tracing::instrument(err, fields(name = ?EscapeAscii(name)), ret, skip(name, buf))]
     pub fn calculate<'a>(
         &self,
         truncate: bool,

@@ -1,3 +1,4 @@
+use crate::escape_ascii::EscapeAscii;
 use crate::{Error, YubiKey};
 use std::fmt;
 use std::iter;
@@ -10,7 +11,7 @@ pub struct Response<'a> {
 impl fmt::Debug for Response<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Response")
-            .field("name", &self.name.escape_ascii().to_string())
+            .field("name", &EscapeAscii(self.name))
             .field("inner", &self.inner)
             .finish()
     }

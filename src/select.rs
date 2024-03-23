@@ -32,10 +32,7 @@ impl YubiKey {
             let (_, challenge) = Self::pop(&mut response, &[0x74])?;
             let (_, algorithm) = Self::pop(&mut response, &[0x7b])?;
             let algorithm = match algorithm {
-                [0x01] => Ok(Algorithm::HmacSha1),
-                [0x02] => Ok(Algorithm::HmacSha256),
-                [0x03] => Ok(Algorithm::HmacSha512),
-                [v] => Err(Error::UnexpectedValue(*v)),
+                [v] => Algorithm::try_from(*v),
                 _ => Err(Error::UnexpectedValue(algorithm.len() as _)),
             }?;
             Some(Inner {

@@ -3,6 +3,8 @@
 pub mod calculate;
 pub mod calculate_all;
 mod error;
+mod escape_ascii;
+pub mod list;
 pub mod select;
 
 pub use error::Error;
@@ -119,4 +121,35 @@ pub enum Algorithm {
     HmacSha1,
     HmacSha256,
     HmacSha512,
+}
+
+impl TryFrom<u8> for Algorithm {
+    type Error = Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0x01 => Ok(Self::HmacSha1),
+            0x02 => Ok(Self::HmacSha256),
+            0x03 => Ok(Self::HmacSha512),
+            _ => Err(Error::UnexpectedValue(value)),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Type {
+    Hotp,
+    Totp,
+}
+
+impl TryFrom<u8> for Type {
+    type Error = Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        match value {
+            0x10 => Ok(Self::Hotp),
+            0x20 => Ok(Self::Totp),
+            _ => Err(Error::UnexpectedValue(value)),
+        }
+    }
 }
