@@ -47,9 +47,9 @@ fn main() -> anyhow::Result<()> {
                 });
             }
 
-            if let [calculate_all::Response { name, inner, .. }] = &responses[..] {
+            if let [calculate_all::Response { name, inner, .. }] = responses[..] {
                 let name = name.to_vec();
-                let code = match *inner {
+                let code = match inner {
                     calculate_all::Inner::Response(response) => response.code(),
                     calculate_all::Inner::Hotp => todo!(),
                     calculate_all::Inner::Touch => {
@@ -82,7 +82,9 @@ fn main() -> anyhow::Result<()> {
             }
         }
         Command::List => {
-            for response in yubikey.list(&mut buf)? {
+            let mut responses = yubikey.list(&mut buf)?;
+            responses.sort_unstable_by_key(|response| response.name);
+            for response in responses {
                 println!("{}", response.name.escape_ascii());
             }
         }
