@@ -1,13 +1,13 @@
 use crate::{Algorithm, Error, YubiKey};
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Response<'a> {
     pub version: &'a [u8],
     pub name: &'a [u8],
     pub inner: Option<Inner<'a>>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Inner<'a> {
     pub challenge: &'a [u8],
     pub algorithm: Algorithm,

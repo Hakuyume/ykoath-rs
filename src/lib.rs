@@ -116,7 +116,7 @@ impl YubiKey {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Algorithm {
     HmacSha1,
     HmacSha256,
@@ -136,7 +136,7 @@ impl TryFrom<u8> for Algorithm {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Type {
     Hotp,
     Totp,

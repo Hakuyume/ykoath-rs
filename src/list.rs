@@ -3,6 +3,7 @@ use crate::{Algorithm, Error, Type, YubiKey};
 use std::fmt::{self, Debug};
 use std::iter;
 
+#[derive(Clone, Copy)]
 pub struct Response<'a> {
     pub type_: Type,
     pub algorithm: Algorithm,

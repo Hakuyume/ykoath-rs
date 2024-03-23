@@ -1,7 +1,7 @@
 use crate::escape_ascii::EscapeAscii;
 use crate::{Error, YubiKey};
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Response<'a> {
     pub digits: u8,
     pub response: &'a [u8],

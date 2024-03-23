@@ -3,6 +3,7 @@ use crate::{Error, YubiKey};
 use std::fmt;
 use std::iter;
 
+#[derive(Clone, Copy)]
 pub struct Response<'a> {
     pub name: &'a [u8],
     pub inner: Inner<'a>,
@@ -17,7 +18,7 @@ impl fmt::Debug for Response<'_> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Inner<'a> {
     Response(crate::calculate::Response<'a>),
     Hotp,
